@@ -1,0 +1,337 @@
+# MAVIS HyperMesh Enterprise — 16-Container Realistic Microservices Mesh (10 Apps + 6 Stateful Infra)
+# Strictly conforms to MAVIS Sandbox Runner rules: digest-pinned images, no build/ports/$, long-form named volumes.
+services:
+  api-gateway:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-api-gateway@sha256:e5f6fd3cb33ca2913819dbf7216f4dafee8d6837c44c9e532af0040d8da7de15
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "api-gateway"
+      APP_VERSION: "v1"
+      AUTH_SERVICE_URL: "http://auth-service:8080"
+      CATALOG_SERVICE_URL: "http://catalog-service:8080"
+      CART_SERVICE_URL: "http://cart-service:8080"
+      ORDER_SERVICE_URL: "http://order-service:8080"
+      CPU_WORK_ITERATIONS: "1500"
+    depends_on:
+      - auth-service
+      - catalog-service
+      - cart-service
+      - order-service
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  auth-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-auth-service@sha256:0500d1914dee75efa4200dab3fc8384867425d215f4b0b133154e42404a85ac5
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "auth-service"
+      APP_VERSION: "v1"
+      POSTGRES_CORE_HOST: "postgres-core:5432"
+      REDIS_SESSION_HOST: "redis-session:6379"
+      CPU_WORK_ITERATIONS: "2500"
+    depends_on:
+      - postgres-core
+      - redis-session
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  catalog-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-catalog-service@sha256:7c26ecde88f8f5c9e71432bc367f57d37b2618c2e87a98c7a81b4d14be5a6c1d
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "catalog-service"
+      APP_VERSION: "v1"
+      PRICING_SERVICE_URL: "http://pricing-service:8080"
+      INVENTORY_SERVICE_URL: "http://inventory-service:8080"
+      POSTGRES_CORE_HOST: "postgres-core:5432"
+      REDIS_CACHE_HOST: "redis-cache:6379"
+      CPU_WORK_ITERATIONS: "3500"
+    depends_on:
+      - pricing-service
+      - inventory-service
+      - postgres-core
+      - redis-cache
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  pricing-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-pricing-service@sha256:42b2740e943640eaa22953630d21e8ccc9da30bd45373689303ee3c480cd4f88
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "pricing-service"
+      APP_VERSION: "v1"
+      REDIS_CACHE_HOST: "redis-cache:6379"
+      CPU_WORK_ITERATIONS: "16000"
+    depends_on:
+      - redis-cache
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  cart-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-cart-service@sha256:ecc85434aea341f04be24af2a78ac665ee40cf482bbf0c934fee7c03d10f5de1
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "cart-service"
+      APP_VERSION: "v1"
+      CATALOG_SERVICE_URL: "http://catalog-service:8080"
+      PRICING_SERVICE_URL: "http://pricing-service:8080"
+      INVENTORY_SERVICE_URL: "http://inventory-service:8080"
+      REDIS_SESSION_HOST: "redis-session:6379"
+      CPU_WORK_ITERATIONS: "3000"
+    depends_on:
+      - catalog-service
+      - pricing-service
+      - inventory-service
+      - redis-session
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  order-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-order-service@sha256:7937e4ee55fb3d90dc6975369edcb9515b9b8e56360616b7f46719f50042cabb
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "order-service"
+      APP_VERSION: "v1"
+      AUTH_SERVICE_URL: "http://auth-service:8080"
+      CART_SERVICE_URL: "http://cart-service:8080"
+      PRICING_SERVICE_URL: "http://pricing-service:8080"
+      INVENTORY_SERVICE_URL: "http://inventory-service:8080"
+      PAYMENT_SERVICE_URL: "http://payment-service:8080"
+      NOTIFICATION_WORKER_URL: "http://notification-worker:8080"
+      POSTGRES_ORDERS_HOST: "postgres-orders:5432"
+      RABBITMQ_HOST: "rabbitmq-broker:5672"
+      CPU_WORK_ITERATIONS: "10000"
+    depends_on:
+      - auth-service
+      - cart-service
+      - pricing-service
+      - inventory-service
+      - payment-service
+      - notification-worker
+      - postgres-orders
+      - rabbitmq-broker
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  inventory-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-inventory-service@sha256:e36e79ed976f9560a1b57e13190880d8a4346f16949e3bcd99df2f074d73156f
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "inventory-service"
+      APP_VERSION: "v1"
+      POSTGRES_CORE_HOST: "postgres-core:5432"
+      REDIS_CACHE_HOST: "redis-cache:6379"
+      CPU_WORK_ITERATIONS: "3000"
+    depends_on:
+      - postgres-core
+      - redis-cache
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  payment-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-payment-service@sha256:eaa2f74bfbf89368d59cbd28765de09af943471f48a63a101a77b05f60b34c69
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "payment-service"
+      APP_VERSION: "v1"
+      AUTH_SERVICE_URL: "http://auth-service:8080"
+      FRAUD_SERVICE_URL: "http://fraud-service:8080"
+      NOTIFICATION_WORKER_URL: "http://notification-worker:8080"
+      POSTGRES_LEDGER_HOST: "postgres-ledger:5432"
+      RABBITMQ_HOST: "rabbitmq-broker:5672"
+      CPU_WORK_ITERATIONS: "4500"
+    depends_on:
+      - auth-service
+      - fraud-service
+      - notification-worker
+      - postgres-ledger
+      - rabbitmq-broker
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  fraud-service:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-fraud-service@sha256:8abeb3a1ca4c0393cdc7e2b94d4c5843669e637d610407c5ca26afbdf609530f
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "fraud-service"
+      APP_VERSION: "v1"
+      POSTGRES_LEDGER_HOST: "postgres-ledger:5432"
+      REDIS_CACHE_HOST: "redis-cache:6379"
+      CPU_WORK_ITERATIONS: "12000"
+    depends_on:
+      - postgres-ledger
+      - redis-cache
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  notification-worker:
+    image: ghcr.io/mavis-platform/mavis-hypermesh-enterprise-notification-worker@sha256:be001088cf42b1fdee21354a6d7943c00e2ba6518cd47dc7e29df0466ba3cc0b
+    user: "1000:1000"
+    expose:
+      - "8080"
+    environment:
+      SERVER_PORT: "8080"
+      SERVICE_NAME: "notification-worker"
+      APP_VERSION: "v1"
+      POSTGRES_ORDERS_HOST: "postgres-orders:5432"
+      RABBITMQ_HOST: "rabbitmq-broker:5672"
+      CPU_WORK_ITERATIONS: "2000"
+    depends_on:
+      - postgres-orders
+      - rabbitmq-broker
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  postgres-core:
+    image: postgres:16-alpine@sha256:f2f98726820d0342055351c6e9d36e705f5bfffb3dd53ff556325114b08afb6d
+    user: postgres
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "hypermesh_core"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - type: volume
+        source: postgres_core_data
+        target: /var/lib/postgresql/data
+      - type: volume
+        source: postgres_core_run
+        target: /var/run/postgresql
+
+  postgres-orders:
+    image: postgres:16-alpine@sha256:f2f98726820d0342055351c6e9d36e705f5bfffb3dd53ff556325114b08afb6d
+    user: postgres
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "hypermesh_orders"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - type: volume
+        source: postgres_orders_data
+        target: /var/lib/postgresql/data
+      - type: volume
+        source: postgres_orders_run
+        target: /var/run/postgresql
+
+  postgres-ledger:
+    image: postgres:16-alpine@sha256:f2f98726820d0342055351c6e9d36e705f5bfffb3dd53ff556325114b08afb6d
+    user: postgres
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "hypermesh_ledger"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - type: volume
+        source: postgres_ledger_data
+        target: /var/lib/postgresql/data
+      - type: volume
+        source: postgres_ledger_run
+        target: /var/run/postgresql
+
+  redis-cache:
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
+    user: redis
+    expose:
+      - "6379"
+    volumes:
+      - type: volume
+        source: redis_cache_data
+        target: /data
+
+  redis-session:
+    image: redis:7-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
+    user: redis
+    expose:
+      - "6379"
+    volumes:
+      - type: volume
+        source: redis_session_data
+        target: /data
+
+  rabbitmq-broker:
+    image: rabbitmq:3.13-alpine@sha256:d7af1c87c5f1eda13fcfca06db452bf3aeab6619fc3358b68535c0c02c4e52bc
+    user: rabbitmq
+    expose:
+      - "5672"
+    environment:
+      HOME: "/var/lib/rabbitmq"
+    volumes:
+      - type: volume
+        source: rabbitmq_data
+        target: /var/lib/rabbitmq
+      - type: volume
+        source: rabbitmq_log
+        target: /var/log/rabbitmq
+
+volumes:
+  postgres_core_data: {}
+  postgres_core_run: {}
+  postgres_orders_data: {}
+  postgres_orders_run: {}
+  postgres_ledger_data: {}
+  postgres_ledger_run: {}
+  redis_cache_data: {}
+  redis_session_data: {}
+  rabbitmq_data: {}
+  rabbitmq_log: {}
