@@ -1,0 +1,55 @@
+# Deterministic MAVIS Studio Live runtime contract for HyperMesh Enterprise (16 containers: 10 apps + 6 infra)
+version: 1
+services:
+  api-gateway:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  auth-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  catalog-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  pricing-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  cart-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  order-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  inventory-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  payment-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  fraud-service:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  notification-worker:
+    runtime: java
+    port: 8080
+    readinessPath: "/health"
+  postgres-core:
+    role: infra
+  postgres-orders:
+    role: infra
+  postgres-ledger:
+    role: infra
+  redis-cache:
+    role: infra
+  redis-session:
+    role: infra
+  rabbitmq-broker:
+    role: infra

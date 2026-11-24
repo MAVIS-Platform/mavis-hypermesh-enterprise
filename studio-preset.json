@@ -1,0 +1,78 @@
+{
+  "name": "HyperMesh Enterprise 16-Service E2E Suite",
+  "recommendedProbeRps": 2,
+  "recommendedMemoryMiB": 256,
+  "recommendedTimeoutSeconds": 150,
+  "workloadSteps": [
+    {
+      "id": "storefront-live-flow",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/storefront/live-flow",
+      "expectedStatus": 200
+    },
+    {
+      "id": "checkout-live-flow",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/checkout/live-flow",
+      "expectedStatus": 200
+    },
+    {
+      "id": "catalog-browse",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/catalog/browse",
+      "expectedStatus": 200
+    },
+    {
+      "id": "orders-overview",
+      "service": "api-gateway",
+      "method": "GET",
+      "path": "/api/v1/orders/overview",
+      "expectedStatus": 200
+    }
+  ],
+  "allowedEnvKeys": {
+    "api-gateway": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "auth-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "catalog-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "pricing-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "cart-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "order-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "inventory-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "payment-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "fraud-service": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ],
+    "notification-worker": [
+      "CPU_WORK_ITERATIONS",
+      "ARTIFICIAL_LATENCY_MS"
+    ]
+  }
+}
